@@ -1,0 +1,7 @@
+.idea
+test.css
+test.py
+test.html
+node_modules
+dist
+*httmp

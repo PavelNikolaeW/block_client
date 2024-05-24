@@ -1,0 +1,114 @@
+:root {
+    --height-controll-panel: 5%;
+    --height-container-blocks: 95%;
+}
+
+html,
+body {
+    /*height: 100%;*/
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: auto;
+}
+
+p {
+    margin: 0;
+    padding: 0;
+}
+
+ol {
+    margin: 0;
+    padding: 0 0 0 15px;
+}
+
+ul {
+    margin: 0;
+    padding: 0 0 0 15px;
+}
+
+
+.control-panel {
+    position: relative;
+    height: 5vh;
+    top: 0;
+    left: 0;
+    background-color: rgba(26, 32, 44, 0.1);
+    border: 1px solid #040404;
+    display: flex;
+    align-items: center;
+    z-index: 1000;
+}
+
+.control-panel__list {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+}
+
+.control-panel__auth {
+    display: flex;
+    gap: 20px;
+    list-style: none;
+}
+
+.container-blocks {
+    position: relative;
+    height: 95vh;
+    overflow: auto;
+    transform-origin: 0 0;
+    transition: transform 0.3s ease;
+    box-sizing: border-box;
+}
+
+.cp-button {
+    border: 2px solid #aaa;
+    background-color: #f0f0f0;
+    color: #333;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.1s;
+    outline: none;
+}
+
+.cp-button:hover {
+    background-color: #b0aeae;
+}
+
+.cp-button__active {
+    background-color: #8d8d8d;
+    color: #330101;
+    transform: translateY(2px)
+}
+
+
+.block {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    border: 1px solid #040404;
+    border-radius: 5px;
+    box-sizing: border-box;
+    overflow: hidden;
+    gap: 5px;
+    padding: 7px;
+}
+
+.block-ghost {
+    background-color: #aaaaaa;
+    border-radius: 5px;
+    width: 100%;
+    height: 100%;
+}
+
+.block-full-screen {
+    position: fixed;
+    top: 5vh;
+    left: 0;
+    height: 95%;
+    width: 100%;
+}
+
+.blockActive {
+    border: 2px solid #343434;
+}
