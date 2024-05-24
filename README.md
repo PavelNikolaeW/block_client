@@ -1,2 +1,2 @@
-# block client
-# block_client
+1. npm install
+2. npm run dev
