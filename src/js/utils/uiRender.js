@@ -29,6 +29,7 @@ class UiRender {
     blockUpdate(block) {
         const copies = document.querySelectorAll(`[blockId="${block.id}"]`)
         const config = {}
+        const newElements = []
 
         copies.forEach(el => {
             const parentNode = el.parentNode
@@ -49,8 +50,9 @@ class UiRender {
                 newEl.classList.add(...parent.children_position[block.id])
             }
             parentNode.replaceChild(newEl, el)
+            newElements.push(newEl)
         })
-        dispatch('block-element-updated', {elements: copies})
+        dispatch('block-element-updated', {elements: newElements})
         blockCreator.applyCssClasses()
     }
 

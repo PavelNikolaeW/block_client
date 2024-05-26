@@ -3,10 +3,26 @@ import gridSpaceChecker from "./gridSpaceChecker";
 
 class SizeManager {
 
-    manager(block) {
+    manager(aspectRatio, block) {
         // const freeSpace = gridSpaceChecker.checkBlockSpace(block)
-        this[block.layout](block)
+        if (typeof this[block.layout] === 'function' )
+            this.schema = this.calcScheme(aspectRatio)
+            console.log(this.schema, aspectRatio)
+            this[block.layout](block)
+    }
 
+    calcScheme(aspectRatio) {
+        if (0.8 <= aspectRatio && aspectRatio <= 1.2) { // почти квадрат
+            return 'square'
+        } else if (1.2 < aspectRatio && aspectRatio <= 2) { // немного вытянутый по горизонтали
+            return  'horizontal'
+        } else if (0.5 <= aspectRatio && aspectRatio < 0.8) { // немного вытянутый по вертикали
+            return 'vertical'
+        } else if (aspectRatio > 2) {  // сильно вытянутый по горизонтали
+            return 'horizontalLong'
+        } else if (aspectRatio < 0.5) { // сильно вытянутый по вертикали
+            return 'verticalLong'
+        }
     }
 
 
@@ -17,12 +33,22 @@ class SizeManager {
     }
 
     default(block) {
-        const [row, col] = this._calculateBlocksLayout(block.children.length) // без учета контента
-
-        console.log(row, col)
-        this._setBlockGrid(block, row, col)
-        this._setChildrenPosition(block, row, col)
-        this._setContentPosition(block, row, col)
+        if (this.schema === 'horizontal' || this.schema === 'square') {
+            const [row, col] = this._calculateBlocksLayout(block.children.length) // без учета контента
+            console.log(row, col, block.id)
+            this._setBlockGrid(block, row, col)
+            this._setChildrenPosition(block, row, col)
+            this._setContentPosition(block, row, col)
+        }
+        if (this.schema  === 'verticalLong' || this.schema  === 'vertical' ) {
+            this.vertical(block)
+        }
+        if (this.schema === 'horizontalLong') {
+            this.horizontal(block)
+        }
+        if (this.schema === 'square') {
+            console.log('todo square')
+        }
     }
 
     horizontal(block) {
@@ -32,12 +58,10 @@ class SizeManager {
 
         for (let i = 0; i < col; i++) {
             const id = block.children[i]
-            block.childrenPosition[id] = {
-                'grid': {
-                    'column': `span`,
-                    'row': `2`
-                }
-            }
+            block.children_position[id] = [
+                `grid-column_span`,
+                `grid_row_2`
+            ]
         }
     }
 
@@ -49,12 +73,10 @@ class SizeManager {
         let rowCounter = 2
         for (let i = 0; i < row; i++) {
             const id = block.children[i]
-            block.childrenPosition[id] = {
-                'grid': {
-                    'column': `1`,
-                    'row': `${rowCounter++}`
-                }
-            }
+            block.children_position[id] = [
+                `grid-column_1`,
+                `grid-row_${rowCounter++}`
+            ]
         }
     }
 
@@ -105,9 +127,10 @@ class SizeManager {
     }
 
     _setBlockGrid(block, row, col) {
+
         block.classList = block.classList.map(className => {
             if (className.startsWith('grid-template-columns')) {
-                return `grid-template-columns_${'1fr__'.repeat(col)}`
+                return `grid-template-columns_${'1fr__'.repeat(Math.max(col, 1))}`
             } else if (className.startsWith('grid-template-rows')) {
                 return `grid-template-rows_auto__${'1fr__'.repeat(row)}`
             }

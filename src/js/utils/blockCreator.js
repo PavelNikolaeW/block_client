@@ -25,15 +25,15 @@ class BlockCreator {
 
         blockElem.classList.add('block')
 
-        if (depth === 0) {
-            blockElem.classList.add(...block.classList)
-            cssConverter.generateStylesheet(block.classList)
-        }
-
-        if (depth === 1 && childClassList.length) {
-            blockElem.classList.add(...childClassList);
-            cssConverter.generateStylesheet(childClassList)
-        }
+        // if (depth === 0) {
+        //     blockElem.classList.add(...block.classList)
+        //     cssConverter.generateStylesheet(block.classList)
+        // }
+        //
+        // if (depth === 1 && childClassList.length) {
+        //     blockElem.classList.add(...childClassList);
+        //     cssConverter.generateStylesheet(childClassList)
+        // }
         return [blockElem, nextColor];
     }
 

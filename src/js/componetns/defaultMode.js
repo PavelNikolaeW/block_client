@@ -2,17 +2,18 @@ import uiRender from '../utils/uiRender'
 import api from './../utils/api'
 import sizeManager from "../utils/sizeManager";
 import {dispatch} from "../utils/functions";
-import {block} from "marked";
 import editorText from "../utils/editorText";
-import cssConverter from "../utils/cssConverter";
+import blockInit from "../utils/block"
 
 export default class DefaultMode {
     constructor() {
         this.api = api
+
         this.firstBlock = null
-        this.allBlocks = null
+        this.allBlocks = {}
         this.rootId = null
         this.section = document.getElementById('default-section')
+
 
         this.currenActiveBlockEl = null
         this.openedBlocks = []
@@ -20,11 +21,13 @@ export default class DefaultMode {
 
     init() {
         window.addEventListener('block-element-updated', (e) => {
+            this.blockInit = blockInit.setAllBlocks(this.allBlocks)
             this.setBlockAttribute(e.detail.elements)
         })
         window.addEventListener('blocks-loaded', (event) => {
             if (this.$store.gdata.appMode === 'default') {
                 this.allBlocks = event.detail.blocks
+                this.blockInit = blockInit.setAllBlocks(this.allBlocks)
                 this.firstBlock = event.detail.firstBlock
                 this.rootId = this.firstBlock.id
                 const blockElem = uiRender.defaultMode(this.allBlocks, this.firstBlock);
@@ -34,7 +37,7 @@ export default class DefaultMode {
             }
         });
         window.addEventListener('keydown', (event) => {
-            if (event.key && this[`handlePressKey${event.key.toUpperCase()}`] !== undefined && this.currenActiveBlockEl) {
+            if (event.key && typeof(this[`handlePressKey${event.key.toUpperCase()}`]) === 'function' && this.currenActiveBlockEl) {
                 const block = this.allBlocks.get(this.currenActiveBlockEl.getAttribute('blockId'))
                 this[`handlePressKey${event.key.toUpperCase()}`](event, block)
             }
@@ -43,9 +46,10 @@ export default class DefaultMode {
 
     setBlockAttribute(elements) {
         elements.forEach(el => {
-            const block = this.allBlocks.get(el.getAttribute('blockId'))
-            console.log(block.properties['js'])
-            console.log(block)
+            // const block = this.allBlocks.get(el.getAttribute('blockId'))
+            this.blockInit.initBlockEl(el)
+            // console.log(block.properties['js'])
+            // console.log(block)
         })
     }
 
@@ -82,18 +86,19 @@ export default class DefaultMode {
         const currentOpened = document.getElementById(this.openedBlocks.at(-1))
         if (currentOpened) {
             currentOpened.classList.remove('block-full-screen')
+            this.blockInit.initBlockEl(blockEl)
         }
         if (this.openedBlocks.at(-1) === blockPath) {
             this.openedBlocks.pop()
             if (this.openedBlocks.length > 0) {
                 const previousEl = document.getElementById(this.openedBlocks.at(-1))
                 previousEl.classList.add('block-full-screen')
-                this.initBlock(previousEl)
+                this.blockInit.initBlockEl(previousEl)
             }
         } else {
             this.openedBlocks.push(blockPath)
             blockEl.classList.add('block-full-screen')
-            this.initBlock(blockEl)
+            this.blockInit.initBlockEl(blockEl)
         }
     }
 
@@ -112,7 +117,7 @@ export default class DefaultMode {
             if (res.status === 201) {
                 const child = res.data
                 block.children.push(child.id)
-                sizeManager.manager(block)
+                // sizeManager.manager(block)
                 child.paths = [blockEl.getAttribute('id') + ',' + child.id]
                 this.allBlocks.set(`${child.id}`, child)
                 api.setBlock(block.id, block)
@@ -140,7 +145,7 @@ export default class DefaultMode {
             parent.children = parent.children.filter(id => id != block.id)
             delete parent.children_position[block.id]
 
-            sizeManager.manager(parent)
+            // sizeManager.manager(parent)
 
             this.api.deleteBlock(block.id, {'parent': parent, 'child': block})
                 .then(res => {
@@ -177,7 +182,7 @@ export default class DefaultMode {
                 console.log('нельзя добавлять одинаковые блоки на один уровень')
             } else {
                 block.children.push(this.copylinkBlockId)
-                sizeManager.manager(block)
+                // sizeManager.manager(block)
                 this.api.setBlock(block.id, block)
 
             }
@@ -227,22 +232,6 @@ export default class DefaultMode {
     handleMouseOut(el) {
         if (this.currenActiveBlockEl !== null)
             this.currenActiveBlockEl.classList.remove('blockActive')
-    }
-
-    initBlock(el) {
-        const block = this.allBlocks.get(el.getAttribute('blockid'))
-        const parent = this.allBlocks.get(el.getAttribute('parent'))
-        console.log(block.id, el.offsetWidth / el.offsetHeight)
-        console.log(el)
-        el.classList.add(...block.classList, ...parent.children_position[block.id])
-        cssConverter.generateStylesheet(block.classList)
-        cssConverter.generateStylesheet(parent.children_position[block.id])
-        cssConverter.applyCssClasses()
-        // console.log(el.offsetWidth, el.offsetHeight)
-
-        // this.$nextTick(() => {
-        //     console.log(el.offsetWidth)
-        // })
     }
 
 
