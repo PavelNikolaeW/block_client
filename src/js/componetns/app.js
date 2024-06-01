@@ -24,7 +24,7 @@ export default class App {
                 if (res.status < 400) {
                     this.bloks = new Map(Object.entries(res.data))
                     this.firstBlock = this.bloks.entries().next().value[1]
-                    dispatch('blocks-loaded', {
+                        dispatch('blocks-loaded', {
                         blocks: this.bloks,
                         firstBlock: this.firstBlock
                     })

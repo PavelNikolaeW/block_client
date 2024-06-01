@@ -21,8 +21,17 @@ export default class DefaultMode {
 
     init() {
         window.addEventListener('block-element-updated', (e) => {
+            e.detail.elements.forEach(el => {
+                if (el.id === this.openedBlocks.at(-1)) {
+                    el.classList.add('block-full-screen')
+                }
+            })
+        })
+        window.addEventListener('block-element-updated', (e) => {
             this.blockInit = blockInit.setAllBlocks(this.allBlocks)
-            this.setBlockAttribute(e.detail.elements)
+            e.detail.elements.forEach(el => {
+                this.blockInit.initBlockEl(el)
+            })
         })
         window.addEventListener('blocks-loaded', (event) => {
             if (this.$store.gdata.appMode === 'default') {
@@ -33,24 +42,14 @@ export default class DefaultMode {
                 const blockElem = uiRender.defaultMode(this.allBlocks, this.firstBlock);
                 this.section.textContent = ''
                 this.section.appendChild(blockElem)
-                dispatch('block-element-updated', {elements: [blockElem]})
             }
         });
         window.addEventListener('keydown', (event) => {
-            if (event.key && typeof(this[`handlePressKey${event.key.toUpperCase()}`]) === 'function' && this.currenActiveBlockEl) {
+            if (event.key && typeof (this[`handlePressKey${event.key.toUpperCase()}`]) === 'function' && this.currenActiveBlockEl) {
                 const block = this.allBlocks.get(this.currenActiveBlockEl.getAttribute('blockId'))
                 this[`handlePressKey${event.key.toUpperCase()}`](event, block)
             }
         });
-    }
-
-    setBlockAttribute(elements) {
-        elements.forEach(el => {
-            // const block = this.allBlocks.get(el.getAttribute('blockId'))
-            this.blockInit.initBlockEl(el)
-            // console.log(block.properties['js'])
-            // console.log(block)
-        })
     }
 
     handlePressKeyENTER(event, block) {
@@ -84,19 +83,23 @@ export default class DefaultMode {
     openBlockFullScreen(blockEl) {
         const blockPath = blockEl.getAttribute('id')
         const currentOpened = document.getElementById(this.openedBlocks.at(-1))
+        console.log(this.openedBlocks)
         if (currentOpened) {
             currentOpened.classList.remove('block-full-screen')
-            this.blockInit.initBlockEl(blockEl)
+            console.log('remo', currentOpened)
+            this.blockInit.initBlockEl(currentOpened)
         }
         if (this.openedBlocks.at(-1) === blockPath) {
             this.openedBlocks.pop()
             if (this.openedBlocks.length > 0) {
                 const previousEl = document.getElementById(this.openedBlocks.at(-1))
                 previousEl.classList.add('block-full-screen')
+                console.log('add', previousEl)
                 this.blockInit.initBlockEl(previousEl)
             }
         } else {
             this.openedBlocks.push(blockPath)
+            console.log('add', blockEl)
             blockEl.classList.add('block-full-screen')
             this.blockInit.initBlockEl(blockEl)
         }
@@ -200,13 +203,15 @@ export default class DefaultMode {
 
     handleMouseOverEmpty(el) {
         const blockId = el.getAttribute('blockId')
+        const parentId = el.getAttribute('parent')
+
         this.api.getBlock(blockId)
             .then(res => {
                 if (res.status === 200) {
                     Object.entries(res.data).forEach((entry) => {
                         this.allBlocks.set(entry[0], entry[1])
                     })
-                    dispatch('update-block', {block: this.allBlocks.get(blockId)})
+                    dispatch('update-block', {block: this.allBlocks.get(parentId)})
                 }
             })
             .catch(err => {
@@ -218,15 +223,6 @@ export default class DefaultMode {
         this.currenActiveBlockEl = el
         if (this.currenActiveBlockEl !== null)
             this.currenActiveBlockEl.classList.add('blockActive')
-        if (this.currenActiveBlockEl.hasAttribute('incomplete')) {
-            this.api.getBlock(this.currenActiveBlockEl.getAttribute('blockId'))
-                .then(res => {
-                    if (res.status === 200) {
-                        dispatch('load-blocks', {blocks: res.data, triggerBlock: this.currenActiveBlockEl})
-                        return res
-                    }
-                })
-        }
     }
 
     handleMouseOut(el) {

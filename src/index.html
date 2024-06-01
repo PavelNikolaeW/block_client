@@ -68,6 +68,7 @@
     </ul>
 
     <ul x-show="!$store.gdata.isAuth" x-data="Auth" class="control-panel__auth">
+        <li x-text="$store.gdata.isAuth"></li>
         <li>
             <input type="text" x-model="username" placeholder="username">
         </li>

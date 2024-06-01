@@ -7,7 +7,7 @@ class SizeManager {
         // const freeSpace = gridSpaceChecker.checkBlockSpace(block)
         if (typeof this[block.layout] === 'function' )
             this.schema = this.calcScheme(aspectRatio)
-            console.log(this.schema, aspectRatio)
+            // console.log(this.schema, aspectRatio)
             this[block.layout](block)
     }
 
@@ -35,18 +35,15 @@ class SizeManager {
     default(block) {
         if (this.schema === 'horizontal' || this.schema === 'square') {
             const [row, col] = this._calculateBlocksLayout(block.children.length) // без учета контента
-            console.log(row, col, block.id)
+            // console.log(row, col, block.id)
             this._setBlockGrid(block, row, col)
             this._setChildrenPosition(block, row, col)
             this._setContentPosition(block, row, col)
-        }
-        if (this.schema  === 'verticalLong' || this.schema  === 'vertical' ) {
+        } else if (this.schema  === 'verticalLong' || this.schema  === 'vertical' ) {
             this.vertical(block)
-        }
-        if (this.schema === 'horizontalLong') {
+        } else if (this.schema === 'horizontalLong') {
             this.horizontal(block)
-        }
-        if (this.schema === 'square') {
+        } else if (this.schema === 'square') {
             console.log('todo square')
         }
     }

@@ -25,15 +25,6 @@ class BlockCreator {
 
         blockElem.classList.add('block')
 
-        // if (depth === 0) {
-        //     blockElem.classList.add(...block.classList)
-        //     cssConverter.generateStylesheet(block.classList)
-        // }
-        //
-        // if (depth === 1 && childClassList.length) {
-        //     blockElem.classList.add(...childClassList);
-        //     cssConverter.generateStylesheet(childClassList)
-        // }
         return [blockElem, nextColor];
     }
 
@@ -68,15 +59,21 @@ class BlockCreator {
         contentElem.setAttribute('contentBlock', '')
     }
 
-    createEmptyElem(id, parentId, color) {
+    createEmptyElem(id, currentPath, parentId, color, childClassList) {
         const blockEl = document.createElement('div')
 
         this.calculateColor(blockEl, null, color)
 
+        blockEl.classList.add('block-ghost')
         blockEl.setAttribute('parent', parentId)
         blockEl.setAttribute('blockId', id)
+        blockEl.setAttribute('id', currentPath)
         blockEl.setAttribute('x-on:mouseover.prevent.stop', 'handleMouseOverEmpty($el)')
 
+        if (childClassList) {
+            blockEl.classList.add(...childClassList)
+            cssConverter.generateStylesheet(childClassList)
+        }
         return blockEl
     }
 

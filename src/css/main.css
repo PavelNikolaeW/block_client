@@ -27,6 +27,11 @@ ul {
     padding: 0 0 0 15px;
 }
 
+h1, h2, h3, h4, h5, h6 {
+    margin: 0;
+    padding: 0;
+}
+
 
 .control-panel {
     position: relative;
@@ -84,18 +89,21 @@ ul {
 
 .block {
     width: 100%;
+    overflow: scroll;
     height: 100%;
     display: grid;
     border: 1px solid #040404;
     border-radius: 5px;
     box-sizing: border-box;
-    overflow: hidden;
-    gap: 5px;
+    /*overflow: hidden;*/
+    gap: 7px;
     padding: 7px;
+    min-height: 10px;
 }
 
 .block-ghost {
-    background-color: #aaaaaa;
+    display: grid;
+    box-sizing: border-box;
     border-radius: 5px;
     width: 100%;
     height: 100%;
@@ -107,8 +115,9 @@ ul {
     left: 0;
     height: 95%;
     width: 100%;
+    z-index: 1;
 }
 
 .blockActive {
-    border: 2px solid #343434;
+    outline: 2px solid #343434;
 }

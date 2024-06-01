@@ -15,32 +15,43 @@ class BlockInit {
     }
 
     initBlockEl(el, parent = null) {
-        console.log(el)
         const block = this.allBlocks.get(el.getAttribute('blockid'))
-        if (!block) {
+        const content = el.querySelector('[contentblock]')
+
+        if (!block || !el) {
             return
         }
-        if (!parent)
+        if (!parent) {
             parent = this.allBlocks.get(el.getAttribute('parent'))
-
+        }
         this._removeGridClass(el)
 
-
-        sizeManager.manager(el.offsetWidth / el.offsetHeight, block)
-        el.classList.add(...block.classList)
-        cssConverter.generateStylesheet(block.classList)
         if (parent && parent.children_position[block.id]) {
+            // todo у блока родителя может быть разное соотношение сторон, а мы храним один вариант
             el.classList.add(...parent.children_position[block.id])
             cssConverter.generateStylesheet(parent.children_position[block.id])
         }
 
-        el.childNodes.forEach(child => {
-            if (child.hasAttribute('blockId')) {
-                this.initBlockEl(child, block)
+        requestAnimationFrame(() => {
+            sizeManager.manager(el.offsetWidth / el.offsetHeight, block)
+
+            if (content !== null) {
+                this._removeGridClass(content)
+                content.classList.add(...block.content_classList)
+                cssConverter.generateStylesheet(block.content_classList)
             }
+
+            el.classList.add(...block.classList)
+            cssConverter.generateStylesheet(block.classList)
+            cssConverter.applyCssClasses()
+            el.childNodes.forEach(child => {
+                if (child.hasAttribute('blockId')) {
+                    this.initBlockEl(child, block)
+                }
+            })
         })
-        cssConverter.applyCssClasses()
     }
+
     _removeGridClass(el) {
         const classes = []
         el.classList.forEach(cl => {

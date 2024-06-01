@@ -100,7 +100,6 @@ class EditorText {
     initMde(blockEl, block) {
         this.contentEl = blockEl.querySelector('[contentBlock]')
         this.block = block
-        console.log(block)
         this.mdeElement.value = this.turndownService.turndown(this.contentEl.innerHTML)
 
         this.editor = new EasyMDE({

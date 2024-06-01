@@ -16,15 +16,14 @@ class UiRender {
         this.allBlocks = blocks
         const blockElement = this.render(firstBlock, {parentId: 0})
         blockCreator.applyCssClasses()
-        dispatch('default-block-render')
+
+        dispatch('block-element-updated', {elements: [blockElement]})
         return blockElement
     }
 
     /**
      * Обновляет элементы блока на странице
-     * @param blockEl этот элемент заменится на новый
      * @param block из этого блока построится элемент
-     * @param config параметры рендера
      */
     blockUpdate(block) {
         const copies = document.querySelectorAll(`[blockId="${block.id}"]`)
@@ -53,6 +52,7 @@ class UiRender {
             newElements.push(newEl)
         })
         dispatch('block-element-updated', {elements: newElements})
+
         blockCreator.applyCssClasses()
     }
 
@@ -91,9 +91,17 @@ class UiRender {
                             mode: mode
                         }
                     );
-                } else {
-                    childBlock = blockCreator.createEmptyElem(childId, parentId, [...nextColor])
                 }
+                if (!childBlock) {
+                    childBlock = blockCreator.createEmptyElem(
+                        childId,
+                        currentPath,
+                        block.id,
+                        [...nextColor],
+                        block.children_position[childId]
+                    )
+                }
+
                 fragment.appendChild(childBlock);
             });
             blockElem.appendChild(fragment);
