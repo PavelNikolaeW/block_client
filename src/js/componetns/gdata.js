@@ -18,9 +18,16 @@ const gdata = {
 
     async init() {
         await this._checkToken();
+        window.addEventListener('set-action', (event) => {
+            if (this.action !== event.detail.action)
+                this.action = event.detail.action
+        })
+        window.addEventListener('reset-buttons', (e) => {
+            this.action = null
+        })
     },
 
-    async _checkToken () {
+    async _checkToken() {
         this.isAuth = await this.api.refreshToken()
     }
 }

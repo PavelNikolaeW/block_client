@@ -1,11 +1,3 @@
-
-
-
-
-
-
-
-
 import Alpine from 'alpinejs';
 import intersect from '@alpinejs/intersect'
 
@@ -25,8 +17,7 @@ import './css/easyMde.css'
 import 'easymde/dist/easymde.min.css';
 import '@fortawesome/fontawesome-free/css/all.min.css';
 
-import grid from "./js/directives/grid";
-
+import keyHandler from "./js/utils/keyHandler";
 
 Alpine.plugin(intersect)
 
@@ -52,7 +43,7 @@ Alpine.data('DefaultMode', () => new DefaultMode());
 Alpine.data('Auth', () => new Auth());
 Alpine.data('Popup', () => new Popup());
 
-Alpine.directive('grid', grid)
+keyHandler.init()
 
 window.Alpine = Alpine;
 Alpine.start();

@@ -1,7 +1,5 @@
 import blockCreator from './blockCreator';
 import {dispatch} from "./functions";
-import {logPlugin} from "@babel/preset-env/lib/debug";
-
 
 class UiRender {
 
@@ -16,7 +14,6 @@ class UiRender {
         this.allBlocks = blocks
         const blockElement = this.render(firstBlock, {parentId: 0})
         blockCreator.applyCssClasses()
-
         dispatch('block-element-updated', {elements: [blockElement]})
         return blockElement
     }
@@ -29,6 +26,7 @@ class UiRender {
         const copies = document.querySelectorAll(`[blockId="${block.id}"]`)
         const config = {}
         const newElements = []
+        console.log(copies)
 
         copies.forEach(el => {
             const parentNode = el.parentNode
@@ -59,7 +57,6 @@ class UiRender {
     render(block, {
         maxDepth = 10,
         depth = 0,
-        childClassList = [],
         blockPath = null,
         color = 'default_color',
         parentId = 0,
@@ -69,7 +66,7 @@ class UiRender {
             return;
         }
         const currentPath = blockPath ? `${blockPath},${block.id}` : `${block.id}`
-        const [blockElem, nextColor] = blockCreator.createElem(block, currentPath, parentId, childClassList, color, depth, mode);
+        const [blockElem, nextColor] = blockCreator.createElem(block, currentPath, parentId, color, depth, mode);
 
         if (block.children) {
             const fragment = document.createDocumentFragment();
@@ -84,7 +81,6 @@ class UiRender {
                         {
                             maxDepth,
                             depth: depth + 1,
-                            childClassList: block.children_position[childId],
                             color: [...nextColor],
                             blockPath: currentPath,
                             parentId: block.id,
@@ -98,7 +94,6 @@ class UiRender {
                         currentPath,
                         block.id,
                         [...nextColor],
-                        block.children_position[childId]
                     )
                 }
 

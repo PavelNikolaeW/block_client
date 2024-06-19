@@ -1,6 +1,16 @@
+
+
+
+
+
+
+
+
+
+
+
 import uiRender from '../utils/uiRender'
 import api from './../utils/api'
-import sizeManager from "../utils/sizeManager";
 import {dispatch} from "../utils/functions";
 import editorText from "../utils/editorText";
 import blockInit from "../utils/block"
@@ -14,25 +24,40 @@ export default class DefaultMode {
         this.rootId = null
         this.section = document.getElementById('default-section')
 
-
         this.currenActiveBlockEl = null
         this.openedBlocks = []
+        this.highlightedList = new Set();
+        this.copylinkBlockId = []
     }
 
     init() {
+        window.addEventListener('control-panel-pres-btn', (e) => {
+            if (this.highlightedList.size !== 0) {
+                const elements = Array.from(this.highlightedList)
+                    .map(el => document.getElementById(el))
+                    .filter(el => el !== null)
+
+                elements.forEach(el => {
+                    el.classList.remove('block-highlighted')
+                })
+                this[e.detail.action](elements)
+                this.highlightedList.clear()
+            } else if (this.currenActiveBlockEl) {
+                this[e.detail.action]([this.currenActiveBlockEl])
+            }
+            dispatch('reset-buttons')
+        })
+
         window.addEventListener('block-element-updated', (e) => {
+            this.blockInit = blockInit.setAllBlocks(this.allBlocks)
             e.detail.elements.forEach(el => {
                 if (el.id === this.openedBlocks.at(-1)) {
                     el.classList.add('block-full-screen')
                 }
-            })
-        })
-        window.addEventListener('block-element-updated', (e) => {
-            this.blockInit = blockInit.setAllBlocks(this.allBlocks)
-            e.detail.elements.forEach(el => {
                 this.blockInit.initBlockEl(el)
             })
         })
+
         window.addEventListener('blocks-loaded', (event) => {
             if (this.$store.gdata.appMode === 'default') {
                 this.allBlocks = event.detail.blocks
@@ -44,15 +69,23 @@ export default class DefaultMode {
                 this.section.appendChild(blockElem)
             }
         });
-        window.addEventListener('keydown', (event) => {
-            if (event.key && typeof (this[`handlePressKey${event.key.toUpperCase()}`]) === 'function' && this.currenActiveBlockEl) {
-                const block = this.allBlocks.get(this.currenActiveBlockEl.getAttribute('blockId'))
-                this[`handlePressKey${event.key.toUpperCase()}`](event, block)
-            }
-        });
+
+        window.addEventListener('open-editor', (event) => {
+            this.openEditor(event.detail.event)
+        })
+
+        window.addEventListener('close-editor', (event) => {
+            this.$store.gdata.isOpenMde = false
+            editorText.closeEditor()
+        })
+
+        window.addEventListener('open-previous-block', () => {
+            console.log('lel')
+            this.openPreviousBlock()
+        })
     }
 
-    handlePressKeyENTER(event, block) {
+    openEditor(event) {
         if (event.shiftKey) {
             return
         }
@@ -64,8 +97,11 @@ export default class DefaultMode {
         if (this.$store.gdata.isOpenMde) {
             return;
         }
-        this.$store.gdata.isOpenMde = true
-        editorText.initMde(this.currenActiveBlockEl, block)
+        if (this.currenActiveBlockEl) {
+            this.$store.gdata.isOpenMde = true
+            const block = this.allBlocks.get(this.currenActiveBlockEl.getAttribute('blockId'))
+            editorText.initMde(this.currenActiveBlockEl, block)
+        }
     }
 
     blockClick(e) {
@@ -73,20 +109,36 @@ export default class DefaultMode {
         const blockEl = this._findParentWithAttribute(e.target, 'blockId')
 
         if (action && this[action] !== undefined) {
-            this[action](blockEl)
+            this[action]([blockEl])
         } else {
             this.openBlockFullScreen(blockEl)
         }
         dispatch('reset-buttons')
     }
 
+
+    openPreviousBlock(e) {
+        console.log(this.openedBlocks)
+        if (this.openedBlocks.length > 0) {
+            const currentOpened = document.getElementById(this.openedBlocks.pop())
+            currentOpened.classList.remove('block-full-screen')
+            this.blockInit.initBlockEl(currentOpened)
+            const previousEl = document.getElementById(this.openedBlocks.at(-1))
+            if (previousEl) {
+                previousEl.classList.add('block-full-screen')
+                this.blockInit.initBlockEl(previousEl)
+            }
+        }
+    }
+
     openBlockFullScreen(blockEl) {
         const blockPath = blockEl.getAttribute('id')
         const currentOpened = document.getElementById(this.openedBlocks.at(-1))
-        console.log(this.openedBlocks)
+
+        if (blockPath == this.rootId) return
+
         if (currentOpened) {
             currentOpened.classList.remove('block-full-screen')
-            console.log('remo', currentOpened)
             this.blockInit.initBlockEl(currentOpened)
         }
         if (this.openedBlocks.at(-1) === blockPath) {
@@ -94,12 +146,10 @@ export default class DefaultMode {
             if (this.openedBlocks.length > 0) {
                 const previousEl = document.getElementById(this.openedBlocks.at(-1))
                 previousEl.classList.add('block-full-screen')
-                console.log('add', previousEl)
                 this.blockInit.initBlockEl(previousEl)
             }
         } else {
             this.openedBlocks.push(blockPath)
-            console.log('add', blockEl)
             blockEl.classList.add('block-full-screen')
             this.blockInit.initBlockEl(blockEl)
         }
@@ -114,57 +164,64 @@ export default class DefaultMode {
         }
     }
 
-    addBlock(blockEl) {
-        const block = this.allBlocks.get(blockEl.getAttribute('blockId'))
-        api.createBlock().then(res => {
-            if (res.status === 201) {
-                const child = res.data
-                block.children.push(child.id)
-                // sizeManager.manager(block)
-                child.paths = [blockEl.getAttribute('id') + ',' + child.id]
-                this.allBlocks.set(`${child.id}`, child)
-                api.setBlock(block.id, block)
-            }
-        }).catch(err => {
-            console.log(err)
+    addBlock(elements) {
+        elements.forEach(blockEl => {
+            const block = this.allBlocks.get(blockEl.getAttribute('blockId'))
+
+            api.createBlock()
+                .then(res => {
+                    if (res.status === 201) {
+                        const child = res.data
+
+                        block.children.push(child.id)
+                        child.paths = [blockEl.getAttribute('id') + ',' + child.id]
+                        this.allBlocks.set(`${child.id}`, child)
+                        api.setBlock(block.id, block)
+                    }
+                }).catch(err => {
+                console.log(err)
+            })
         })
     }
 
-    removeBlock(blockEl) {
-        if (blockEl.getAttribute('blockId') == this.rootId) {
+    removeBlock(elements) {
+        console.log(elements)
+        if (elements.includes(this.rootId)) {
             dispatch('open-popup', {
-                'title': 'Этот блок удалить нельзя',
+                'title': 'Корневой блок удалить нельзя',
             })
             return
         }
-        const block = this.allBlocks.get(blockEl.getAttribute('blockId'))
-        const parent = this.allBlocks.get(blockEl.getAttribute('parent'))
-        const message = block.children.length ? `У блока ${block.children.length} детей.` : 'Удалить блок?'
+        const message = this._createDeleteMessage(elements)
         const allBlocks = this.allBlocks
 
         const _removeBlock = async () => {
-            const copyParent = JSON.parse(JSON.stringify(parent));
+            elements.forEach(blockEl => {
+                const block = allBlocks.get(blockEl.getAttribute('blockId'))
+                const parent = allBlocks.get(blockEl.getAttribute('parent'))
+                const copyParent = JSON.parse(JSON.stringify(parent));
 
-            parent.children = parent.children.filter(id => id != block.id)
-            delete parent.children_position[block.id]
+                parent.children = parent.children.filter(id => id != block.id)
+                delete parent.children_position[block.id]
 
-            // sizeManager.manager(parent)
+                // sizeManager.manager(parent)
 
-            this.api.deleteBlock(block.id, {'parent': parent, 'child': block})
-                .then(res => {
-                    if (res.status === 204) {
-                        console.log('block удален')
-                        dispatch('update-block', {block: parent})
-                    } else {
-                        console.log('блок не удален')
-                        allBlocks.set(`${copyParent.id}`, copyParent)
-                    }
-                }).catch(err => {
-                console.log('блок не удален')
-                console.log(err)
+                this.api.deleteBlock(block.id, {'parent': parent, 'child': block})
+                    .then(res => {
+                        if (res.status === 204) {
+                            console.log('block удален')
+                            dispatch('update-block', {block: parent})
+                        } else {
+                            console.log('блок не удален')
+                            allBlocks.set(`${copyParent.id}`, copyParent)
+                        }
+                    }).catch(err => {
+                    console.log('блок не удален')
+                    console.log(err)
+                })
             })
-
         }
+
         dispatch('open-popup', {
             'title': 'Подтвердите удаление блока',
             'message': message,
@@ -173,38 +230,80 @@ export default class DefaultMode {
 
     }
 
-    copyLink(blockEl) {
-        this.copylinkBlockId = parseInt(blockEl.getAttribute('blockId'))
+    moveBlock(elements) {
+        const idList = []
+
+        elements.forEach(el => {
+            idList.push(el.getAttribute('blockId'))
+        })
+        console.log(idList)
+        console.log(this.currenActiveBlockEl)
     }
 
-    pasteLink(blockEl) {
-        const block = this.allBlocks.get(blockEl.getAttribute('blockId'))
-        if (block) {
-            if (block.children.includes(this.copylinkBlockId)) {
-                // todo сделать подсказку в интерфейсе
-                console.log('нельзя добавлять одинаковые блоки на один уровень')
-            } else {
-                block.children.push(this.copylinkBlockId)
-                // sizeManager.manager(block)
-                this.api.setBlock(block.id, block)
+    copyBlock() {
+        //     todo
+    }
 
+    pasteBlock() {
+        //     todo
+    }
+
+    copyLink(elements) {
+        elements.forEach(blockEl => {
+            this.copylinkBlockId.push(parseInt(blockEl.getAttribute('blockId')))
+        })
+    }
+
+    pasteLink(elements) {
+        elements.forEach(blockEl => {
+            const block = this.allBlocks.get(blockEl.getAttribute('blockId'))
+
+            if (block) {
+                if (block.children.some(id => this.copylinkBlockId.includes(id))) {
+                    // todo сделать подсказку в интерфейсе
+                    console.log('нельзя добавлять одинаковые блоки на один уровень')
+                } else {
+                    block.children = [...block.children, ...this.copylinkBlockId]
+                    this.api.setBlock(block.id, block)
+                }
             }
-        }
+        })
+        this.copylinkBlockId = []
     }
 
-    copyPath(blockEl) {
-        const path = blockEl.getAttribute('id')
-        navigator.clipboard.writeText(path).then(() => {
-            console.log('Текст скопирован в буфер обмена');
-        }).catch(err => {
+    copyPath(elements) {
+        const pathList = []
+
+        elements.forEach(blockEl => {
+            pathList.push(blockEl.getAttribute('id'))
+        })
+
+        navigator.clipboard.writeText(pathList.join(' '))
+            .then(() => {
+                console.log(pathList);
+            }).catch(err => {
             console.error('Не удалось скопировать текст: ', err);
         });
+    }
+
+    highlighted(elements) {
+        const el = elements[0]
+
+        el.classList.toggle('block-highlighted')
+        if (this.highlightedList.has(el.id)) {
+            this.highlightedList.delete(el.id)
+        } else {
+            this.highlightedList.add(el.id)
+        }
     }
 
     handleMouseOverEmpty(el) {
         const blockId = el.getAttribute('blockId')
         const parentId = el.getAttribute('parent')
-
+        if (this.allBlocks.has(blockId)) {
+            dispatch('update-block', {block: this.allBlocks.get(parentId)})
+            return
+        }
         this.api.getBlock(blockId)
             .then(res => {
                 if (res.status === 200) {
@@ -221,15 +320,17 @@ export default class DefaultMode {
 
     handleMouseOver(el) {
         this.currenActiveBlockEl = el
+
         if (this.currenActiveBlockEl !== null)
-            this.currenActiveBlockEl.classList.add('blockActive')
+            this.currenActiveBlockEl.classList.add('block-active')
     }
 
     handleMouseOut(el) {
         if (this.currenActiveBlockEl !== null)
-            this.currenActiveBlockEl.classList.remove('blockActive')
-    }
+            this.currenActiveBlockEl.classList.remove('block-active')
 
+        this.currenActiveBlockEl = null
+    }
 
     _findParentWithAttribute(el, attributeName = 'blockId') {
         while (el && el !== document.documentElement) {
@@ -239,5 +340,16 @@ export default class DefaultMode {
             el = el.parentElement;
         }
         return null; // Возвращает null, если элемент с заданным атрибутом не найден
+    }
+
+    _createDeleteMessage(elements) {
+        if (elements.length === 1) {
+            const block = this.allBlocks.get(elements[0].getAttribute('blockId'))
+            return block.children.length ? `У блока ${block.children.length} детей.` : 'Удалить блок?'
+        }
+        if (elements.length > 1) {
+            return `Удалить блоки ${elements.map(el => el.getAttribute('blockId'))} ?`
+        }
+
     }
 }

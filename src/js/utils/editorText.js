@@ -109,7 +109,6 @@ class EditorText {
                 singleLineBreaks: true,
                 codeSyntaxHighlighting: true,
             },
-
             allowHTML: true,
             toolbar: ['heading', '|',
                 'bold', 'italic', 'strikethrough', '|',
@@ -119,6 +118,20 @@ class EditorText {
                 'unordered-list', 'ordered-list', '|',
                 'horizontal-rule', 'guide']
         });
+
+        this.editor.codemirror.on('focus', this.setCursorToEnd);
+        setTimeout(() => {
+            this.editor.codemirror.focus()
+        })
+    }
+
+
+    setCursorToEnd(e) {
+        console.log(e)
+        var doc = e.getDoc();
+        var lastLine = doc.lastLine();
+        var lastChar = doc.getLine(lastLine).length;
+        doc.setCursor(lastLine, lastChar);
     }
 }
 

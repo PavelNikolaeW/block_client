@@ -38,7 +38,6 @@ export default class App {
     closeEditor(e) {
         editorText.closeEditor()
         this.$store.gdata.isOpenMde = false
-        console.log(e)
     }
 
 }

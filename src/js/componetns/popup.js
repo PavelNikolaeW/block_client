@@ -9,7 +9,7 @@ export default class Popup {
     }
 
     init() {
-        // устанавливает слушатели в init бля того что бы контекст выполнения уже был обернут в Proxy
+        // устанавливаем слушатели в init для того что бы контекст выполнения уже был обернут в Proxy
         window.addEventListener('open-popup', event => {
             this.open(event.detail);
         });

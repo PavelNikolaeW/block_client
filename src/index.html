@@ -35,25 +35,39 @@
                     @click="pressButton">Paste link
             </button>
         </li>
-        <li>
-            <button class="cp-button"
-                    id="zoomIn"
-                    :class="{'cp-button__active': $store.gdata.action === 'zoomIn'}"
-                    @click="pressButton">zoom in
-            </button>
-        </li>
-        <li>
-            <button class="cp-button"
-                    id="zoomOut"
-                    :class="{'cp-button__active': $store.gdata.action === 'zoomOut'}"
-                    @click="pressButton">zoom out
-            </button>
-        </li>
+        <!--        <li>-->
+        <!--            <button class="cp-button"-->
+        <!--                    id="zoomIn"-->
+        <!--                    :class="{'cp-button__active': $store.gdata.action === 'zoomIn'}"-->
+        <!--                    @click="pressButton">zoom in-->
+        <!--            </button>-->
+        <!--        </li>-->
+        <!--        <li>-->
+        <!--            <button class="cp-button"-->
+        <!--                    id="zoomOut"-->
+        <!--                    :class="{'cp-button__active': $store.gdata.action === 'zoomOut'}"-->
+        <!--                    @click="pressButton">zoom out-->
+        <!--            </button>-->
+        <!--        </li>-->
         <li>
             <button class="cp-button"
                     id="copyPath"
                     :class="{'cp-button__active': $store.gdata.action === 'copyPath'}"
                     @click="pressButton">Copy path
+            </button>
+        </li>
+        <li>
+            <button class="cp-button"
+                    id="copyBlock"
+                    :class="{'cp-button__active': $store.gdata.action === 'copyBlock'}"
+                    @click="pressButton">Copy block
+            </button>
+        </li>
+        <li>
+            <button class="cp-button"
+                    id="highlighted"
+                    :class="{'cp-button__active': $store.gdata.action === 'highlighted'}"
+                    @click="pressButton">highlight
             </button>
         </li>
         <li>

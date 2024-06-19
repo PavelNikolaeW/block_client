@@ -118,6 +118,10 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 1;
 }
 
-.blockActive {
+.block-active {
     outline: 2px solid #343434;
+}
+
+.block-highlighted {
+    opacity: 0.5;
 }

@@ -5,7 +5,7 @@ class BlockCreator {
         this.elements = new Map()
     }
 
-    createElem(block, currentPath, parentId, childClassList, color, depth, mode) {
+    createElem(block, currentPath, parentId, color, depth, mode) {
         const blockElem = document.createElement("div");
         const nextColor = this.calculateColor(blockElem, block, color)
 
@@ -59,7 +59,7 @@ class BlockCreator {
         contentElem.setAttribute('contentBlock', '')
     }
 
-    createEmptyElem(id, currentPath, parentId, color, childClassList) {
+    createEmptyElem(id, currentPath, parentId, color) {
         const blockEl = document.createElement('div')
 
         this.calculateColor(blockEl, null, color)
@@ -69,11 +69,6 @@ class BlockCreator {
         blockEl.setAttribute('blockId', id)
         blockEl.setAttribute('id', currentPath)
         blockEl.setAttribute('x-on:mouseover.prevent.stop', 'handleMouseOverEmpty($el)')
-
-        if (childClassList) {
-            blockEl.classList.add(...childClassList)
-            cssConverter.generateStylesheet(childClassList)
-        }
         return blockEl
     }
 
