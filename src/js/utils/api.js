@@ -77,8 +77,8 @@ class Api {
             .then(res => {
                 if (res.status === 200) {
                     const {access, refresh} = res.data;
-                    Cookies.set('access', access, {expires: 1 / 24}); // 1 hour
-                    Cookies.set('refresh', refresh, {expires: 7}); // 7 days
+                    Cookies.set('access', access, {expires: 30});
+                    Cookies.set('refresh', refresh, {expires: 30});
                     return true;
                 }
             }).catch(err => {
