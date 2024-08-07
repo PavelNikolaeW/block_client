@@ -31,7 +31,7 @@ class BlockCreator {
     calculateColor(blockElem, block, color) {
         let hsl = []
         if (color === 'default_color' && block.color === 'default_color') {
-            hsl = [210, 0, 50]
+            hsl = [210, 0, 50, 0]
         } else if (block && block.color !== 'default_color' && block.color !== null) {
             hsl = block.color.split(',').map(n => parseInt(n))
         } else if (color !== 'default_color') {
@@ -39,15 +39,34 @@ class BlockCreator {
         }
         if (hsl[2] === 0 || hsl[2] === 100) {
             //     обрабатываем белый или черный цвет
-        } else {
-            if (hsl[1] === 100)
-                hsl[1] = 0
-            hsl[1] += 25
         }
+        if (block === null) {
+            blockElem.style.backgroundColor = '#aaaaaa'
+            return
+        }
+        if (hsl[3] === 0) {
+            hsl[1] = 90
+            hsl[2] = 90
+            hsl[3]++
+        } else if (hsl[3] === 1) {
+            hsl[1] = 90
+            hsl[2] = 80
+            hsl[3]++
+        } else if (hsl[3] === 2) {
+            hsl[1] = 90
+            hsl[2] = 90
+            hsl[3]++
+        } else if (hsl[3] === 3) {
+            hsl[1] = 80
+            hsl[2] = 70
+            hsl[3] = 0
+        }
+
         blockElem.setAttribute('hsl', `${hsl.join(',')}`)
         blockElem.style.backgroundColor = `hsl(${hsl[0]}, ${hsl[1]}%, ${hsl[2]}%)`
         return hsl
     }
+
 
     createContent(blockElem, block) {
         const contentElem = document.createElement("div");
