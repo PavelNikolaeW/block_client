@@ -15,8 +15,8 @@ const KEY_MAP = {
     Ь: 'moveBlock',
     B: 'back',
     И: 'back',
-    ZOOMI: 'zoomIn',
-    ZOOMO: 'zoomOut',
+    ZOOMI: 'zoomIn',  // +
+    ZOOMO: 'zoomOut', // - _
 }
 
 class KeyHandler {

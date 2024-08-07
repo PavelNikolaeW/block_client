@@ -1,14 +1,3 @@
-
-
-
-
-
-
-
-
-
-
-
 import uiRender from '../utils/uiRender'
 import api from './../utils/api'
 import {dispatch} from "../utils/functions";
@@ -67,6 +56,7 @@ export default class DefaultMode {
                 const blockElem = uiRender.defaultMode(this.allBlocks, this.firstBlock);
                 this.section.textContent = ''
                 this.section.appendChild(blockElem)
+                dispatch('block-element-updated', {elements: [blockElem]})
             }
         });
 
@@ -80,7 +70,6 @@ export default class DefaultMode {
         })
 
         window.addEventListener('open-previous-block', () => {
-            console.log('lel')
             this.openPreviousBlock()
         })
     }
@@ -301,7 +290,7 @@ export default class DefaultMode {
         const blockId = el.getAttribute('blockId')
         const parentId = el.getAttribute('parent')
         if (this.allBlocks.has(blockId)) {
-            dispatch('update-block', {block: this.allBlocks.get(parentId)})
+            dispatch('update-block', {block: this.allBlocks.get(parentId), elementId: el.id})
             return
         }
         this.api.getBlock(blockId)
@@ -310,7 +299,7 @@ export default class DefaultMode {
                     Object.entries(res.data).forEach((entry) => {
                         this.allBlocks.set(entry[0], entry[1])
                     })
-                    dispatch('update-block', {block: this.allBlocks.get(parentId)})
+                    dispatch('update-block', {block: this.allBlocks.get(parentId), elementId: el.id})
                 }
             })
             .catch(err => {

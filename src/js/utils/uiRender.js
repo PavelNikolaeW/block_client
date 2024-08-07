@@ -5,28 +5,40 @@ class UiRender {
 
     constructor() {
         this.allBlocks = null
+        this.cashElements = new Map()
         window.addEventListener('update-block', (event) => {
-            this.blockUpdate(event.detail.block)
+            this.blockUpdate(event.detail.block, event.detail.elementId)
         })
     }
 
-    defaultMode(blocks, firstBlock) {
-        this.allBlocks = blocks
-        const blockElement = this.render(firstBlock, {parentId: 0})
-        blockCreator.applyCssClasses()
-        dispatch('block-element-updated', {elements: [blockElement]})
-        return blockElement
+    defaultMode(blocks, firstBlock, idElement = null) {
+        if (!idElement) {
+            this.allBlocks = blocks
+            const blockElement = this.render(firstBlock, {parentId: 0})
+            this.cashElements.set(blockElement.id, blockElement)
+            blockCreator.applyCssClasses()
+            return blockElement
+        } else {
+            if (this.cashElements.has(idElement)) {
+                return this.cashElements.get(idElement)
+            } else {
+                this.allBlocks = blocks
+                const blockElement = this.render(firstBlock, {parentId: 0})
+                this.cashElements.set(blockElement.id, blockElement)
+                blockCreator.applyCssClasses()
+                return blockElement
+            }
+        }
     }
 
     /**
-     * Обновляет элементы блока на странице
+     * Обновляет элементы блока на странице и все его копии.
      * @param block из этого блока построится элемент
      */
-    blockUpdate(block) {
+    blockUpdate(block, blockId) {
         const copies = document.querySelectorAll(`[blockId="${block.id}"]`)
         const config = {}
         const newElements = []
-        console.log(copies)
 
         copies.forEach(el => {
             const parentNode = el.parentNode
@@ -53,6 +65,44 @@ class UiRender {
 
         blockCreator.applyCssClasses()
     }
+
+    // blockUpdate(block, elementId) {
+    //     if (!elementId) {
+    //         console.log('Передай id елемента')
+    //         return
+    //     }
+    //     const element = document.getElementById(elementId)
+    //     console.log(element)
+    //     console.log(elementId)
+    //     if (element == null) {
+    //         console.log("element не найден")
+    //         return
+    //     }
+    //
+    //     const config = {}
+    //     const parentNode = element.parentNode
+    //     const parent = this.allBlocks.get(parentNode.getAttribute('blockId'))
+    //
+    //     if (parentNode.tagName !== 'SECTION') {
+    //         config.color = parentNode.getAttribute('hsl').split(',').map(Number)
+    //         config.parentId = parent.id
+    //         config.blockPath = parentNode.getAttribute('id')
+    //     } else {
+    //         config.color = block.color
+    //         config.parentId = 0
+    //     }
+    //
+    //     const newEl = this.render(block, config)
+    //
+    //     if (parent) {
+    //         newEl.classList.add(...parent.children_position[block.id])
+    //     }
+    //     parentNode.replaceChild(newEl, element)
+    //
+    //     dispatch('block-element-updated', {elements: [newEl]})
+    //
+    //     blockCreator.applyCssClasses()
+    // }
 
     render(block, {
         maxDepth = 10,
